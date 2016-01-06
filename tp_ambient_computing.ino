@@ -15,6 +15,7 @@ const int SIZE_INFO = 2;
 const int SIZE_CD_FUNC = 1;
 const int SIZE_CD_SS_FUNC = 1;
 
+/* construction of tram */
 typedef struct{
     byte head[SIZE_HEADER];
     byte adr_dst[SIZE_ADR];
@@ -29,6 +30,7 @@ typedef struct{
 typedef struct_message* Message;
 typedef byte* Trame;
 
+/* function that create a tram */
 Message create_message(byte adr_dst[], byte *data, short size_data){
     int i = 0;
     byte* b = NULL;
@@ -48,6 +50,10 @@ Message create_message(byte adr_dst[], byte *data, short size_data){
 
     Message message = (Message)malloc(sizeof(struct_message));
 
+    if(message == NULL) {
+        return NULL;
+    }
+
     /*filling header*/
     message->head[0] = 0x01;
     message->head[1] = 0xFF;
@@ -58,7 +64,8 @@ Message create_message(byte adr_dst[], byte *data, short size_data){
 
     memcpy(message->adr_dst, adr_dst, SIZE_ADR);
 
-    message->size_info = SIZE_INFO + SIZE_CD_FUNC + SIZE_CD_SS_FUNC  + sizeof(byte);
+    /* #### je crois qu'on doit mettre sizeof(data) ##### */
+    message->size_info = (SIZE_INFO + SIZE_CD_FUNC + SIZE_CD_SS_FUNC  + size_data)*sizeof(byte);
 
     message->data = (byte*)malloc(size_data * sizeof(byte));
     memcpy(message->data, data, size_data * sizeof(byte));
@@ -128,7 +135,9 @@ Trame convertMessageToTrame(Message m) {
 
     j=0;
     index = i+size_data;
-    for( i; i < i + size_data; i++ ) {printf("nb byte = %d", i);getchar();
+    for( i; i < i + size_data; i++ ) {
+        printf("nb byte = %d", i);
+        getchar();
         trame[i] = m->data[j];
     }
 
@@ -136,7 +145,14 @@ Trame convertMessageToTrame(Message m) {
 }
 
 short checksum(Message* trame) {
- //not ready
+    int checksumValue = 0;
+    int sizeOfTrame = sizeof(trame);
+
+    sizeOfTrame = (sizeOfTrame - SIZE_HEADER - SIZE_TAIL)*sizeof(byte);
+
+    checksumValue = sizeOfTrame % 65536;
+
+    return checksumValue;
 }
 
 void print_Message(Message m) {
