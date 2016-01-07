@@ -15,6 +15,18 @@ const int SIZE_INFO = 2;
 const int SIZE_CD_FUNC = 1;
 const int SIZE_CD_SS_FUNC = 1;
 
+/* code function */
+const byte FUNCTION_ACQUISITION = 0x01;
+const byte FUNCTION_ACTION = '0x02';
+
+/* code subfunction */
+const byte NOISE = 0x01;
+const byte LIGHT = 0x02;
+const byte ACTION_CLOSE_WINDOWS = 0x03;
+const byte ACTION_OPEN_WINDOWS = 0x04;
+const byte ACTION_SWITCHON_LIGHT = 0x05;
+const byte ACTION_SWITCHOFF_LIGHT = 0x06;
+
 /* construction of tram */
 typedef struct{
     byte head[SIZE_HEADER];
@@ -32,7 +44,7 @@ typedef byte* Trame;
 short checksum(Message* trame);
 
 /* function that create a tram */
-Message create_message(byte adr_dst[], byte *data, short size_data){
+Message create_message(byte adr_dst[], byte *data, short size_data, byte codeFunction, byte codeSubFunction){
     int i = 0;
     byte* b = NULL;
     short size_info;
@@ -54,6 +66,26 @@ Message create_message(byte adr_dst[], byte *data, short size_data){
     if(message == NULL) {
         return NULL;
     }
+
+    /* filling of codeFunction and codeSubFunction */
+    if(codeFunction == FUNCTION_ACQUISITION){
+        message->cd_func = codeFunction;
+        if(codeSubFunction == NOISE || codeSubFunction == LIGHT){
+            message->cd_ss_func = codeSubFunction;
+        }else{
+            return NULL;
+        }
+    }else if(codeFunction == FUNCTION_ACTION){
+        message->cd_ss_func = codeFunction;
+        if(codeSubFunction == ACTION_OPEN_WINDOWS || codeSubFunction == ACTION_CLOSE_WINDOWS || codeSubFunction == ACTION_SWITCHOFF_LIGHT || codeSubFunction == ACTION_SWITCHON_LIGHT){
+            message->cd_ss_func = codeSubFunction;
+        }else{
+            return NULL;
+        }
+    }else{
+        return NULL;
+    }
+
 
     /*filling header*/
     message->head[0] = 0x01;
@@ -172,6 +204,12 @@ void print_Message(Message m) {
         printf("address destination[%d] : %x \n", i, m->adr_dst[i]);
     }
 
+    /*printing code function*/
+    printf("code function : %x \n", m->cd_func);
+
+    /*printing code subfunction*/
+    printf("code subfunction : %x \n", m->cd_ss_func);
+
     /*printing size information*/
     printf("size information : %d \n", m->size_info );
 
@@ -229,7 +267,7 @@ void loop()
         byte_data[i] = data[i];
 	}
 
-	Message message = create_message(adr, byte_data, 6);
+	Message message = create_message(adr, byte_data, 6, FUNCTION_ACQUISITION, LIGHT);
 
     print_Message(message);
 
