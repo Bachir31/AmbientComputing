@@ -170,18 +170,31 @@ Trame convertMessageToTrame(Message m) {
         trame[i] = m->data[j];
     }
 
+    j=0;
+    index = i + SIZE_CHEKSUM;
+    for (i ; i < index ; i++){
+        trame[i] = m->chksum[j++];
+    }
+
+    j=0;
+    index = i + SIZE_TAIL;
+    for (i ; i < index ; i++){
+        trame[i] = m->tail[j++];
+    }
+
     return trame;
 }
 
-short checksum(Message* trame) {
+void checksum(Message message) {
     short checksumValue = 0;
-    short sizeOfTrame = sizeof(trame);
+    short sizeOfMes = sizeOfMessage(message);
 
-    sizeOfTrame = (sizeOfTrame - SIZE_HEADER - SIZE_TAIL)*sizeof(byte);
+    sizeOfMes = (sizeOfMes - SIZE_HEADER - SIZE_TAIL)*sizeof(byte);
 
-    checksumValue = sizeOfTrame % 65536;
+    checksumValue = sizeOfMes % 65536;
 
-    return checksumValue;
+    message->chksum[0] = (checksumValue >> 8);
+    message->chksum[1] = (checksumValue & 0xFF);
 }
 
 void print_Message(Message m) {
@@ -217,7 +230,7 @@ void print_Message(Message m) {
     printf("data : %s \n",m->data);
 
     /*printing chucksum */
-    printf("Chuksum : %d \n",m->chksum);
+    printf("Checksum : %d \n",m->chksum);
 
     /*printing queue*/
     i = 0;
@@ -231,8 +244,8 @@ void print_Message(Message m) {
 
 void setup()
 {
-	Serial.begin(9600);
-	pinMode(LED_PIN, OUTPUT);
+    Serial.begin(9600);
+    pinMode(LED_PIN, OUTPUT);
 }
 
 char* byteToString(byte b, char *str)
@@ -255,33 +268,33 @@ void loop()
     int i = 0;
     Serial.println("");
     Serial.println("");
-	Serial.println("Hello world!");
-	byte adr[4] = {0x01, 0x02, 0x03, 0x4};
+    Serial.println("Hello world!");
+    byte adr[4] = {0x01, 0x02, 0x03, 0x4};
 
-	char data[6] = "hello";
+    char data[6] = "hello";
     data[5] = '\0';
 
-	byte byte_data[6];
+    byte byte_data[6];
 
-	for(i; i<6;i++) {
+    for(i; i<6;i++) {
         byte_data[i] = data[i];
-	}
+    }
 
-	Message message = create_message(adr, byte_data, 6, FUNCTION_ACQUISITION, LIGHT);
+    Message message = create_message(adr, byte_data, 6, FUNCTION_ACQUISITION, LIGHT);
 
     print_Message(message);
 
     Trame trame =  convertMessageToTrame(message);
 
     debugFrame(trame, sizeOfMessage(message));
-	delay(1000);              // wait for a second
-	digitalWrite(LED_PIN, HIGH);   // set the LED on
-	delay(1000);              // wait for a second
-	digitalWrite(13, LOW);    // set the LED off
+    delay(1000);              // wait for a second
+    digitalWrite(LED_PIN, HIGH);   // set the LED on
+    delay(1000);              // wait for a second
+    digitalWrite(13, LOW);    // set the LED off
 
-	byte test[5] = {0x00, 0x41, 0x43, 0xFF};
-	Serial.println("Using Serial.Write;");
-	Serial.write(test,5);
-	Serial.println("Using debugFrame ;");
-	debugFrame(test, 5);
+    byte test[5] = {0x00, 0x41, 0x43, 0xFF};
+    Serial.println("Using Serial.Write;");
+    Serial.write(test,5);
+    Serial.println("Using debugFrame ;");
+    debugFrame(test, 5);
 }
