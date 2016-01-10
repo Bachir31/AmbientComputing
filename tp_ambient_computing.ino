@@ -6,14 +6,14 @@
 */
 
 /* constants that define the size for each part of trame */
-const int LED_PIN = 13;
-const int SIZE_HEADER = 2;
-const int SIZE_ADR = 4;
-const int SIZE_CHEKSUM = 2;
-const int SIZE_TAIL = 2;
-const int SIZE_INFO = 2;
-const int SIZE_CD_FUNC = 1;
-const int SIZE_CD_SS_FUNC = 1;
+const short LED_PIN = 13;
+const short SIZE_HEADER = 2;
+const short SIZE_ADR = 4;
+const short SIZE_CHEKSUM = 2;
+const short SIZE_TAIL = 2;
+const short SIZE_INFO = 2;
+const short SIZE_CD_FUNC = 1;
+const short SIZE_CD_SS_FUNC = 1;
 
 /* code function */
 const byte FUNCTION_ACQUISITION = 0x01;
@@ -35,13 +35,15 @@ typedef struct{
     byte cd_func;
     byte cd_ss_func;
     byte* data;
-    byte chksum[SIZE_CHEKSUM];
+    short chksum;
     byte tail[SIZE_TAIL];
 }struct_message;
 
 typedef struct_message* Message;
 typedef byte* Trame;
-short checksum(Message* trame);
+
+
+short checksum(short sizeOfAll);
 
 /* function that create a tram */
 Message create_message(byte adr_dst[], byte *data, short size_data, byte codeFunction, byte codeSubFunction){
@@ -101,6 +103,10 @@ Message create_message(byte adr_dst[], byte *data, short size_data, byte codeFun
 
     message->data = (byte*)malloc(size_data * sizeof(byte));
     memcpy(message->data, data, size_data * sizeof(byte));
+    short sizeForChecksum = 0;
+    sizeForChecksum = SIZE_HEADER + SIZE_ADR + SIZE_CHEKSUM + SIZE_TAIL + SIZE_INFO + SIZE_CD_FUNC + SIZE_CD_SS_FUNC + size_data;
+
+    message->chksum = checksum(sizeForChecksum);
 
     return message;
 }
@@ -172,9 +178,8 @@ Trame convertMessageToTrame(Message m) {
 
     j=0;
     index = i + SIZE_CHEKSUM;
-    for (i ; i < index ; i++){
-        trame[i] = m->chksum[j++];
-    }
+    trame[i++] = (m->chksum >> 8);
+    trame[i++] = (m->chksum & 0xFF);
 
     j=0;
     index = i + SIZE_TAIL;
@@ -185,16 +190,10 @@ Trame convertMessageToTrame(Message m) {
     return trame;
 }
 
-void checksum(Message message) {
+short checksum(short sizeOfAll) {
     short checksumValue = 0;
-    short sizeOfMes = sizeOfMessage(message);
-
-    sizeOfMes = (sizeOfMes - SIZE_HEADER - SIZE_TAIL)*sizeof(byte);
-
-    checksumValue = sizeOfMes % 65536;
-
-    message->chksum[0] = (checksumValue >> 8);
-    message->chksum[1] = (checksumValue & 0xFF);
+    checksumValue = sizeOfAll % 65536;
+    return checksumValue;
 }
 
 void print_Message(Message m) {
