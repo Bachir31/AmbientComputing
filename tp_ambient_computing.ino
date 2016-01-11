@@ -5,7 +5,7 @@
   Turns on an LED on for one second, then off for one second, repeatedly.
 */
 
-/* constants that define the size for each part of trame */
+/* constants that define the size for each part of a tram */
 const short LED_PIN = 13;
 const short SIZE_HEADER = 2;
 const short SIZE_ADR = 4;
@@ -27,7 +27,7 @@ const byte ACTION_OPEN_WINDOWS = 0x04;
 const byte ACTION_SWITCHON_LIGHT = 0x05;
 const byte ACTION_SWITCHOFF_LIGHT = 0x06;
 
-/* construction of tram */
+/* Structure of a tram */
 typedef struct{
     byte head[SIZE_HEADER];
     byte adr_dst[SIZE_ADR];
@@ -207,26 +207,26 @@ void print_Message(Message m) {
     printf("\n\t=================================== \n");
     /*printing header*/
     for(i; i < SIZE_HEADER; i++) {
-        printf("header[%d] : %x \n", i, m->head[i]);
+        printf("Header[%d] : %x \n", i, m->head[i]);
     }
 
     /*printing address destination*/
     i = 0;
     for(i; i < SIZE_ADR; i++) {
-        printf("address destination[%d] : %x \n", i, m->adr_dst[i]);
+        printf("Address destination[%d] : %x \n", i, m->adr_dst[i]);
     }
 
     /*printing code function*/
-    printf("code function : %x \n", m->cd_func);
+    printf("Code function : %x \n", m->cd_func);
 
     /*printing code subfunction*/
-    printf("code subfunction : %x \n", m->cd_ss_func);
+    printf("Code subfunction : %x \n", m->cd_ss_func);
 
     /*printing size information*/
-    printf("size information : %d \n", m->size_info );
+    printf("Size information : %d \n", m->size_info );
 
     /*printing data */
-    printf("data : %s \n",m->data);
+    printf("Data : %s \n",m->data);
 
     /*printing chucksum */
     printf("Checksum : %d \n",m->chksum);
@@ -234,12 +234,10 @@ void print_Message(Message m) {
     /*printing queue*/
     i = 0;
     for(i; i < SIZE_TAIL; i++) {
-        printf("tail[%d] : %x \n", i, m->tail[i]);
+        printf("Tail[%d] : %x \n", i, m->tail[i]);
     }
     printf("\n\t=================================== \n");
 }
-
-
 
 void setup()
 {
